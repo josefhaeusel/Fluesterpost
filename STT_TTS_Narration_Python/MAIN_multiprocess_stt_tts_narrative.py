@@ -137,10 +137,7 @@ if __name__ == "__main__":
     #speech_to_text_process.join()
     narrative_process.join()
 
-<<<<<<< HEAD
-
+#Another Josefs Comments
 
     #Josefs Comment
-=======
 #This is a testcomment by pascal
->>>>>>> 562d7fe6840e6fb9b0d1f640a415bfa293f2092f
