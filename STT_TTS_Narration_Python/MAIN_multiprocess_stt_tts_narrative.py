@@ -136,12 +136,3 @@ if __name__ == "__main__":
     recorder_process.join()
     #speech_to_text_process.join()
     narrative_process.join()
-
-#Another Josefs Comments
-#Third Comment Josef
-
-    #Josefs Comment
-#This is a testcomment by pascal
-
-
-#new comment by pascal
