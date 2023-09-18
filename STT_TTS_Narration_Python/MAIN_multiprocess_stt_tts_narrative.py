@@ -68,7 +68,6 @@ def speech_to_text():
     print("\n\nTRANSCRIPTION DONE:", result.text, "\n\n")
     return result.text
 
-
 def remove_non_letters(string):
     last_character = string[len(string)-1]
     if last_character.isalpha():
@@ -86,7 +85,6 @@ def add_period(string):
         return string + '.'
     else:
         return string  
-
 
 def text_to_speech(text):
     text = add_period(text)
@@ -138,3 +136,7 @@ if __name__ == "__main__":
     recorder_process.join()
     #speech_to_text_process.join()
     narrative_process.join()
+
+
+
+    #Josefs Comment
