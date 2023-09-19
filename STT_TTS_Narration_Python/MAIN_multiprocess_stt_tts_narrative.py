@@ -57,7 +57,7 @@ def speech_to_text():
 
             result = whisper.decode(model, mel, options)
 
-            if result.no_speech_prob < 0.5:
+            if result.no_speech_prob < 0.9:
 
                 with open(f"{DIR_PATH}/transcriptions/transcript.txt", 'a') as f:
                     f.write(result.text)
@@ -88,7 +88,7 @@ def add_period(string):
 
 def text_to_speech(text):
     text = add_period(text)
-    tts_model = "tts_models/en/ljspeech/tacotron2-DDC"
+    tts_model = "tts_models/en/ljspeech/glow-tts"
     tts = TTS(tts_model)
 
     wav = tts.tts(text)
@@ -98,27 +98,33 @@ def text_to_speech(text):
 def narrative(tts_callback_function, stt_callback_function):
 
     ## Send Text to TTS Callback Function
-    text = "Hello there, my name is Alice. My path has been a long, strange and difficult one. I have no time to explain, but you need to tell me your full name right now."
-    text2 = "Tell me your name"
+    text = "Tell me your name, tell me your name."
+    tts_callback_function(text)
 
-    tts_callback_function(text2)
-    ## Wait for TTS to finish with sd.wait()
+    for i in range(4):
+        ## Call speech-to-text(), remove_non_letters right away
+        name1 = remove_non_letters(stt_callback_function())
+        text = f"{name1}. {name1}, {name1}. what did you eat for breakfast?"
+        tts_callback_function(text)
+        
+        bf = remove_non_letters(stt_callback_function())
+        text = f"{bf}, {bf}, {bf}. For breakfast? What is your birthday?"
+        tts_callback_function(text)
 
-    ## Call speech-to-text()
-    t = stt_callback_function()
-    #Remove Non-Letters (e.g. . , !) to keep the TTS sentence fluid
-    t = remove_non_letters(t)
+        bd = remove_non_letters(stt_callback_function())
+        text = f"{bd}. I never met anyone, who hat birth day on the {bd}. Have you?"
+        tts_callback_function(text)
+
+        name2 = remove_non_letters(stt_callback_function())
+        text = f"Are you full of wine? I am speaking to you {name2}, {name2} {name2}? Tell me where you were born!"
+        tts_callback_function(text)
+
+        place = remove_non_letters(stt_callback_function())
+        text = f"Are you full of wine? There is no place like {place}, {place}, {place}."
+        tts_callback_function(text)
+
+
     
-    text = f"Speak up! I don't know what a {t} is!"
-    tts_callback_function(text)
-
-    ## Call speech-to-text()
-    t = remove_non_letters(stt_callback_function())
-    text = f"{t}, {t}, {t}, {t}, is that right?! I don't think we are on the same page here. Could you please tell me your name again?"
-    tts_callback_function(text)
-
-
-
 
 
 
