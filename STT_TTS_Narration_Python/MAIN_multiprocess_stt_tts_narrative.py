@@ -7,12 +7,16 @@ import glob
 import ssl
 import whisper
 import multiprocessing
+import time
+import random as rdm
+import simpleaudio as sa
 from TTS.api import TTS
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
 DIR_PATH = pathlib.Path(__file__).parent.resolve()
 recordings_dir = os.path.join(f'{DIR_PATH}/recordings/', '*')
+samples_dir = f'{DIR_PATH}/samples'
 
 
 
@@ -43,17 +47,35 @@ def speech_to_text():
     transcription_done = False
     model = whisper.load_model("base")
     transcribed = []
+    sample_ids = [0,1,2,3,4]
+    rdm.shuffle(sample_ids)
+    zero_time = time.time()
+
     while not transcription_done:
+        current_time = time.time()
+        elapsed_time = current_time - zero_time
         print("Transcribing...")
         files = sorted(glob.iglob(recordings_dir), key=os.path.getctime, reverse=True)
-
         latest_recording = files[0]
+
+        #Trigger "I can't hear you sample" (and similar) after 8 seconds
+        if elapsed_time >= 8:
+            if sample_ids:
+                sample_id = sample_ids[0]
+                sample = f"{samples_dir}/no_answer_sample{sample_id}.wav"
+                wave_obj = sa.WaveObject.from_wave_file(sample)
+                wave_obj.play()
+                zero_time = time.time()
+                sample_ids.pop(0)
+            else:
+                sample_ids = [0,1,2,3,4]
+                rdm.shuffle(sample_ids)
 
         if os.path.exists(latest_recording) and latest_recording not in transcribed:
             audio = whisper.load_audio(latest_recording)
             audio = whisper.pad_or_trim(audio)
             mel = whisper.log_mel_spectrogram(audio).to(model.device)
-            options = whisper.DecodingOptions(language='en', fp16=False)
+            options = whisper.DecodingOptions(language='en', fp16=False, temperature=1)
 
             result = whisper.decode(model, mel, options)
 
@@ -61,7 +83,7 @@ def speech_to_text():
 
                 with open(f"{DIR_PATH}/transcriptions/transcript.txt", 'a') as f:
                     f.write(result.text)
-    
+
                 transcribed.append(latest_recording)
                 transcription_done = True
         
@@ -104,24 +126,28 @@ def narrative(tts_callback_function, stt_callback_function):
     for i in range(4):
         ## Call speech-to-text(), remove_non_letters right away
         name1 = remove_non_letters(stt_callback_function())
-        text = f"{name1}. {name1}, {name1}. what did you eat for breakfast?"
+        text = f"Alright, {name1}. what did you eat for breakfast, {name1}?"
         tts_callback_function(text)
         
         bf = remove_non_letters(stt_callback_function())
-        text = f"{bf}, {bf}, {bf}. For breakfast? What is your birthday?"
-        tts_callback_function(text)
-
-        bd = remove_non_letters(stt_callback_function())
-        text = f"{bd}. I never met anyone, who hat birth day on the {bd}. Have you?"
-        tts_callback_function(text)
-
-        name2 = remove_non_letters(stt_callback_function())
-        text = f"Are you full of wine? I am speaking to you {name2}, {name2} {name2}? Tell me where you were born!"
+        text = f"You ate {bf}, for breakfast? Where were you born, {name1}? You, who is eating {bf} for breakfast?"
         tts_callback_function(text)
 
         place = remove_non_letters(stt_callback_function())
-        text = f"Are you full of wine? There is no place like {place}, {place}, {place}."
+        text = f"Born in {place}? {name1}, are you full of wine? There is no place like {place}. What is the day you were born?"
         tts_callback_function(text)
+
+        bd = remove_non_letters(stt_callback_function())
+        text = f"{name1}, {name1}. I never met anyone, who had birth day on the {bd}. How is the weather in {place} today?"
+        tts_callback_function(text)
+
+        weather = remove_non_letters(stt_callback_function())
+        text = f"You must be mocking us! It is impossible for weather to be {weather}. My day is ruined, {name1}."
+        tts_callback_function(text)
+
+
+
+
 
 
     
