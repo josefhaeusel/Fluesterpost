@@ -59,7 +59,7 @@ def speech_to_text():
         latest_recording = files[0]
 
         #Trigger "I can't hear you sample" (and similar) after 8 seconds
-        if elapsed_time >= 8:
+        if elapsed_time >= 10:
             if sample_ids:
                 sample_id = sample_ids[0]
                 sample = f"{samples_dir}/no_answer_sample{sample_id}.wav"
@@ -75,7 +75,7 @@ def speech_to_text():
             audio = whisper.load_audio(latest_recording)
             audio = whisper.pad_or_trim(audio)
             mel = whisper.log_mel_spectrogram(audio).to(model.device)
-            options = whisper.DecodingOptions(language='en', fp16=False, temperature=1)
+            options = whisper.DecodingOptions(language='en', fp16=False, temperature=0.8)
 
             result = whisper.decode(model, mel, options)
 
