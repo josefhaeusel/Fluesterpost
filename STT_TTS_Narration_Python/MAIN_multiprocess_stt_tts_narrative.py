@@ -16,21 +16,27 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 DIR_PATH = pathlib.Path(__file__).parent.resolve()
 recordings_dir = os.path.join(f'{DIR_PATH}/recordings/', '*')
+recordings_dir_os = f'{DIR_PATH}/recordings/'
 samples_dir = f'{DIR_PATH}/samples'
 
 
 
-def delete_old_recordings(keep_files):
-    #Delete old files in recordings directory
-    files = sorted(glob.iglob(recordings_dir), key=os.path.getctime)
-    old_files = files[:len(files)-keep_files]
-
-    for file_to_delete in old_files:
-        try:
-            os.remove(file_to_delete)
-            print(f"Deleted: {file_to_delete}")
-        except OSError as e:
-            print(f"Error deleting {file_to_delete}: {e}")
+def delete_old_recordings():
+    while True:
+        files = os.listdir(recordings_dir_os)
+        files = [os.path.join(recordings_dir_os, file) for file in files]
+        files = sorted(files, key=os.path.getctime)
+        old_files = files[:len(files)-5]
+        if len(files) >= 10:
+            for file_to_delete in old_files:
+                try:
+                    os.remove(file_to_delete)
+                    print(f"Deleted: {file_to_delete}")
+                except OSError as e:
+                    print(f"Error deleting {file_to_delete}: {e}")
+        time.sleep(60)
+        
+        
 
 def record_audio():
     freq = 44100
@@ -75,11 +81,11 @@ def speech_to_text():
             audio = whisper.load_audio(latest_recording)
             audio = whisper.pad_or_trim(audio)
             mel = whisper.log_mel_spectrogram(audio).to(model.device)
-            options = whisper.DecodingOptions(language='en', fp16=False, temperature=0.8)
+            options = whisper.DecodingOptions(language='en', fp16=False, temperature=0.5, sample_len = 15, suppress_blank=True )
 
             result = whisper.decode(model, mel, options)
 
-            if result.no_speech_prob < 0.9:
+            if result.no_speech_prob < 0.75:
 
                 with open(f"{DIR_PATH}/transcriptions/transcript.txt", 'a') as f:
                     f.write(result.text)
@@ -91,13 +97,15 @@ def speech_to_text():
     return result.text
 
 def remove_non_letters(string):
-    last_character = string[len(string)-1]
-    if last_character.isalpha():
-        return string
-    else:
-        string = string[:len(string)-1]
-        print(f"Removed {last_character}")
-        return string
+    if string:
+        last_character = string[len(string)-1]
+        if last_character.isalpha():
+            return string
+        else:
+            string = string[:len(string)-1]
+            print(f"Removed {last_character}")
+            return string
+    return string
 
 def add_period(string):
     last_character = string[len(string)-1]
@@ -146,25 +154,16 @@ def narrative(tts_callback_function, stt_callback_function):
         tts_callback_function(text)
 
 
-
-
-
-
-    
-
-
-
 if __name__ == "__main__":
-    delete_old_recordings(keep_files=1)
 
     recorder_process = multiprocessing.Process(target=record_audio)
-    #speech_to_text_process = multiprocessing.Process(target=speech_to_text, args=(text_to_speech,))
     narrative_process = multiprocessing.Process(target=narrative, args=(text_to_speech, speech_to_text, ))
-
+    clear_cache_process = multiprocessing.Process(target=delete_old_recordings)
+    
     recorder_process.start()
-    #speech_to_text_process.start()
     narrative_process.start()
-
+    clear_cache_process.start()
+    
     recorder_process.join()
-    #speech_to_text_process.join()
     narrative_process.join()
+    clear_cache_process.join()
