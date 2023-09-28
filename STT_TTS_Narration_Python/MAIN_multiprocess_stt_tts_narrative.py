@@ -53,6 +53,7 @@ def speech_to_text():
     transcription_done = False
     model = whisper.load_model("base")
     transcribed = []
+    #No-Answer Samples
     sample_ids = [0,1,2,3,4]
     rdm.shuffle(sample_ids)
     zero_time = time.time()
@@ -81,11 +82,11 @@ def speech_to_text():
             audio = whisper.load_audio(latest_recording)
             audio = whisper.pad_or_trim(audio)
             mel = whisper.log_mel_spectrogram(audio).to(model.device)
-            options = whisper.DecodingOptions(language='en', fp16=False, temperature=0.5, sample_len = 15, suppress_blank=True )
+            options = whisper.DecodingOptions(language='en', fp16=False, temperature=1, sample_len = 10, suppress_blank=True )
 
             result = whisper.decode(model, mel, options)
 
-            if result.no_speech_prob < 0.75:
+            if result.no_speech_prob < 0.7:
 
                 with open(f"{DIR_PATH}/transcriptions/transcript.txt", 'a') as f:
                     f.write(result.text)
@@ -98,14 +99,13 @@ def speech_to_text():
 
 def remove_non_letters(string):
     if string:
-        last_character = string[len(string)-1]
-        if last_character.isalpha():
-            return string
-        else:
-            string = string[:len(string)-1]
-            print(f"Removed {last_character}")
-            return string
-    return string
+        formatted_string = ""
+        for character in string:
+            if character.isalpha():
+                formatted_string += character
+            else:
+                print(f"Removed {character} from {string}")
+        return formatted_string
 
 def add_period(string):
     last_character = string[len(string)-1]
@@ -134,7 +134,7 @@ def narrative(tts_callback_function, stt_callback_function):
     for i in range(4):
         ## Call speech-to-text(), remove_non_letters right away
         name1 = remove_non_letters(stt_callback_function())
-        text = f"Alright, {name1}. what did you eat for breakfast, {name1}?"
+        text = f"Alright, {name1}. I will call you {name1} from now on. What did you eat for breakfast, {name1}?"
         tts_callback_function(text)
         
         bf = remove_non_letters(stt_callback_function())
@@ -153,6 +153,9 @@ def narrative(tts_callback_function, stt_callback_function):
         text = f"You must be mocking us! It is impossible for weather to be {weather}. My day is ruined, {name1}."
         tts_callback_function(text)
 
+        excuse = remove_non_letters(stt_callback_function())
+        text = f"{excuse}? {excuse} is no excuse. Listen, {name1}. Born on {bd}. Go back to {place}, enjoy the {weather} weather."
+        tts_callback_function(text)
 
 if __name__ == "__main__":
 
