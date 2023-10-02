@@ -100,7 +100,7 @@ def speech_to_text():
             audio = whisper.load_audio(latest_recording)
             audio = whisper.pad_or_trim(audio)
             mel = whisper.log_mel_spectrogram(audio).to(model.device)
-            options = whisper.DecodingOptions(language='en', fp16=False, temperature=1, sample_len = 10, suppress_blank=True )
+            options = whisper.DecodingOptions(language='en', fp16=False, temperature=0.5, sample_len = 10, suppress_blank=True )
 
             result = whisper.decode(model, mel, options)
 
@@ -146,14 +146,19 @@ def add_period(string):
     else:
         return string  
 
-def text_to_speech(text):
+def text_to_speech(text, mute_mic = True):
 
     """
     Synthesizes input string into speech, plays soundfile and waits till done.
     Output can get routed to Max (Ch.2), to get Vocoder Sound
+
+    OSC Message to Max (un-) mutes microphone input (0 closed, 1 open)
     
     """
 
+    if mute_mic:
+        osc_message("/gate_mic", 0)
+    
     text = add_period(text)
     tts_model = "tts_models/en/ljspeech/glow-tts"
     tts = TTS(tts_model)
@@ -161,16 +166,22 @@ def text_to_speech(text):
     wav = tts.tts(text)
     sd.play(wav, samplerate=22050)
     sd.wait()
+    
+    osc_message("/gate_mic", 1)
 
-def osc_rec_channel(ch = 1):
+
+def osc_message(osc_channel = "/rec_channel", message = "3"):
     """
     Sends OSC Message to MaxMSP to change channel for STT recording.
-    1 = Microphone
-    2 = Agent 1
-    3 = Agent 2
-    4 = Agent 3
-    5 = Agent 3
-
+    /rec_channel
+        1 = Microphone
+        2 = Agent 1
+        3 = Agent 2
+        4 = Agent 3
+        5 = Agent 3
+    /mic_gate
+        0 = closed gate
+        1 = open gate
     """
 
     #Parser and Client Setup
@@ -180,21 +191,24 @@ def osc_rec_channel(ch = 1):
     args = parser.parse_args()
     client = udp_client.SimpleUDPClient(args.ip, args.port)
 
-    client.send_message("/rec_channel", ch)
+    client.send_message(osc_channel, message)
 
 
 def narrative(tts_callback_function, stt_callback_function):
     """
     Calls TTS and STT via callback functions, following a sequence of text
-    Change Input channel for STT recording with OSC Message to MaxMSP by calling osc_rec_channel() (1 = Mic, 2 = Agent1, 3 = Agent2, ...)
+    Change Input channel for STT recording with OSC Message to MaxMSP by calling osc_message("/rec_channel", 1) 
+        (1 = Mic 2 = Agent1, 3 = Agent2, ...)
+    
+
 
     """
 
     text = "Tell me your name, tell me your name."
     tts_callback_function(text)
-
+ 
     for i in range(4):
-        osc_rec_channel(ch=1)
+        osc_message("/rec_channel", 1)
         name1 = remove_non_letters(stt_callback_function())
         text = f"Alright, {name1}. I will call you {name1} from now on. What did you eat for breakfast, {name1}?"
         tts_callback_function(text)
@@ -211,6 +225,7 @@ def narrative(tts_callback_function, stt_callback_function):
         text = f"{name1}, {name1}. I never met anyone, who had birth day on the {bd}. How is the weather in {place} today?"
         tts_callback_function(text)
 
+        osc_message("/rec_channel", 3)
         weather = remove_non_letters(stt_callback_function())
         text = f"You must be mocking us! It is impossible for weather to be {weather}. My day is ruined, {name1}."
         tts_callback_function(text)
