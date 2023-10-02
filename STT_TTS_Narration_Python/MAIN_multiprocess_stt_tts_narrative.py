@@ -9,22 +9,31 @@ import whisper
 import multiprocessing
 import time
 import random as rdm
+import argparse as arg
 import simpleaudio as sa
 from TTS.api import TTS
+from pythonosc import udp_client
 
+### SSL Bugfix Whisper SST
 ssl._create_default_https_context = ssl._create_unverified_context
 
+### Global Variables
 DIR_PATH = pathlib.Path(__file__).parent.resolve()
-recordings_dir = os.path.join(f'{DIR_PATH}/recordings/', '*')
-recordings_dir_os = f'{DIR_PATH}/recordings/'
-samples_dir = f'{DIR_PATH}/samples'
+RECORDINGS_DIR = os.path.join(f'{DIR_PATH}/recordings/', '*')
+RECORDINGS_DIR_OS = f'{DIR_PATH}/recordings/'
+SAMPLES_DIR = f'{DIR_PATH}/samples'
 
 
 
 def delete_old_recordings():
+    """
+    Every 1 minute, delet all recordings except for last 5. 
+    
+    """
+
     while True:
-        files = os.listdir(recordings_dir_os)
-        files = [os.path.join(recordings_dir_os, file) for file in files]
+        files = os.listdir(RECORDINGS_DIR_OS)
+        files = [os.path.join(RECORDINGS_DIR_OS, file) for file in files]
         files = sorted(files, key=os.path.getctime)
         old_files = files[:len(files)-5]
         if len(files) >= 10:
@@ -35,10 +44,13 @@ def delete_old_recordings():
                 except OSError as e:
                     print(f"Error deleting {file_to_delete}: {e}")
         time.sleep(60)
-        
-        
-
+         
 def record_audio():
+    """
+    Records files from Ch. 1 of System Input Device with reference to time in filename
+
+    """
+
     freq = 44100
     duration = 3
 
@@ -50,10 +62,16 @@ def record_audio():
         wv.write(f"{DIR_PATH}/recordings/{filename}.wav", recording, freq, sampwidth=2)
 
 def speech_to_text():
+    """
+    Transcribes the latest recorded files from record_audio() in ../recordings/... into text, exluding the already transcribes ones
+
+    """
+
     transcription_done = False
     model = whisper.load_model("base")
     transcribed = []
-    #No-Answer Samples
+
+    #Variables for 'No-Answer Samples'
     sample_ids = [0,1,2,3,4]
     rdm.shuffle(sample_ids)
     zero_time = time.time()
@@ -62,14 +80,14 @@ def speech_to_text():
         current_time = time.time()
         elapsed_time = current_time - zero_time
         print("Transcribing...")
-        files = sorted(glob.iglob(recordings_dir), key=os.path.getctime, reverse=True)
+        files = sorted(glob.iglob(RECORDINGS_DIR), key=os.path.getctime, reverse=True)
         latest_recording = files[0]
 
         #Trigger "I can't hear you sample" (and similar) after 8 seconds
         if elapsed_time >= 10:
             if sample_ids:
                 sample_id = sample_ids[0]
-                sample = f"{samples_dir}/no_answer_sample{sample_id}.wav"
+                sample = f"{SAMPLES_DIR}/no_answer_sample{sample_id}.wav"
                 wave_obj = sa.WaveObject.from_wave_file(sample)
                 wave_obj.play()
                 zero_time = time.time()
@@ -98,6 +116,12 @@ def speech_to_text():
     return result.text
 
 def remove_non_letters(string):
+
+    """
+    Removes all non-alphabetical characters from string, including empty spaces
+
+    """
+
     if string:
         formatted_string = ""
         for character in string:
@@ -108,6 +132,12 @@ def remove_non_letters(string):
         return formatted_string
 
 def add_period(string):
+
+    """
+    Adds period to TTS input string to prevent infinite generation bug (Some TTS models need a period to know when to stop generating)
+    
+    """
+
     last_character = string[len(string)-1]
     #Bug fix for infinite TTS generation, if there is no period at end of transcription
     if last_character.isalpha():
@@ -117,6 +147,13 @@ def add_period(string):
         return string  
 
 def text_to_speech(text):
+
+    """
+    Synthesizes input string into speech, plays soundfile and waits till done.
+    Output can get routed to Max (Ch.2), to get Vocoder Sound
+    
+    """
+
     text = add_period(text)
     tts_model = "tts_models/en/ljspeech/glow-tts"
     tts = TTS(tts_model)
@@ -125,14 +162,39 @@ def text_to_speech(text):
     sd.play(wav, samplerate=22050)
     sd.wait()
 
-def narrative(tts_callback_function, stt_callback_function):
+def osc_rec_channel(ch = 1):
+    """
+    Sends OSC Message to MaxMSP to change channel for STT recording.
+    1 = Microphone
+    2 = Agent 1
+    3 = Agent 2
+    4 = Agent 3
+    5 = Agent 3
 
-    ## Send Text to TTS Callback Function
+    """
+
+    #Parser and Client Setup
+    parser = arg.ArgumentParser()
+    parser.add_argument("--ip", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8001)
+    args = parser.parse_args()
+    client = udp_client.SimpleUDPClient(args.ip, args.port)
+
+    client.send_message("/rec_channel", ch)
+
+
+def narrative(tts_callback_function, stt_callback_function):
+    """
+    Calls TTS and STT via callback functions, following a sequence of text
+    Change Input channel for STT recording with OSC Message to MaxMSP by calling osc_rec_channel() (1 = Mic, 2 = Agent1, 3 = Agent2, ...)
+
+    """
+
     text = "Tell me your name, tell me your name."
     tts_callback_function(text)
 
     for i in range(4):
-        ## Call speech-to-text(), remove_non_letters right away
+        osc_rec_channel(ch=1)
         name1 = remove_non_letters(stt_callback_function())
         text = f"Alright, {name1}. I will call you {name1} from now on. What did you eat for breakfast, {name1}?"
         tts_callback_function(text)
