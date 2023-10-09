@@ -3,6 +3,7 @@ import wavio as wv
 import datetime
 import pathlib
 import os
+import re 
 import glob
 import ssl
 import whisper
@@ -115,22 +116,6 @@ def speech_to_text():
     print("\n\nTRANSCRIPTION DONE:", result.text, "\n\n")
     return result.text
 
-def remove_non_letters(string):
-
-    """
-    Removes all non-alphabetical characters from string, including empty spaces
-
-    """
-
-    if string:
-        formatted_string = ""
-        for character in string:
-            if character.isalpha():
-                formatted_string += character
-            else:
-                print(f"Removed {character} from {string}")
-        return formatted_string
-
 def add_period(string):
 
     """
@@ -169,7 +154,6 @@ def text_to_speech(text, mute_mic = True):
     
     osc_message("/gate_mic", 1)
 
-
 def osc_message(osc_channel = "/rec_channel", message = "3"):
     """
     Sends OSC Message to MaxMSP to change channel for STT recording.
@@ -193,6 +177,42 @@ def osc_message(osc_channel = "/rec_channel", message = "3"):
 
     client.send_message(osc_channel, message)
 
+#Text Processing Methods
+
+def remove_non_letters(string):
+
+    """
+    Removes all non-alphabetical characters from string, including empty spaces
+
+    """
+
+    if string:
+        formatted_string = ""
+        for character in string:
+            if character.isalpha():
+                formatted_string += character
+            else:
+                print(f"Removed {character} from {string}")
+        return formatted_string
+
+def text_amalgamation(input_string, extract_last_word = False, extend_vowels = False):
+    
+    if extract_last_word:
+        last_word = input_string.txt.split()[-1]
+        return last_word
+    
+    if extend_vowels:
+        vowels = "aeiou"
+        extended_string = ""
+        
+        for char in input_string:
+            extended_string += char
+
+            if char in vowels:
+                for n in range(3):
+                    extended_string += char
+
+        return extended_string
 
 def narrative(tts_callback_function, stt_callback_function):
     """
@@ -234,6 +254,9 @@ def narrative(tts_callback_function, stt_callback_function):
         text = f"{excuse}? {excuse} is no excuse. Listen, {name1}. Born on {bd}. Go back to {place}, enjoy the {weather} weather."
         tts_callback_function(text)
 
+
+
+
 if __name__ == "__main__":
 
     recorder_process = multiprocessing.Process(target=record_audio)
@@ -247,3 +270,7 @@ if __name__ == "__main__":
     recorder_process.join()
     narrative_process.join()
     clear_cache_process.join()
+
+
+
+f""
