@@ -25,10 +25,9 @@ RECORDINGS_DIR_OS = f'{DIR_PATH}/recordings/'
 SAMPLES_DIR = f'{DIR_PATH}/samples'
 
 
-
-def delete_old_recordings():
+def delete_old_recordings_periodically():
     """
-    Every 1 minute, delet all recordings except for last 5. 
+    Every 1 minute, delete all recordings except for last 5. 
     
     """
 
@@ -37,7 +36,7 @@ def delete_old_recordings():
         files = [os.path.join(RECORDINGS_DIR_OS, file) for file in files]
         files = sorted(files, key=os.path.getctime)
         old_files = files[:len(files)-5]
-        if len(files) >= 10:
+        if len(files) > 5:
             for file_to_delete in old_files:
                 try:
                     os.remove(file_to_delete)
@@ -45,7 +44,29 @@ def delete_old_recordings():
                 except OSError as e:
                     print(f"Error deleting {file_to_delete}: {e}")
         time.sleep(60)
-         
+
+def delete_all_recordings(except_last = True):
+    """
+    When called, deletes all recordings in ../recordings folder.
+    
+    """
+
+    files = os.listdir(RECORDINGS_DIR_OS)
+    files = [os.path.join(RECORDINGS_DIR_OS, file) for file in files]
+    files = sorted(files, key=os.path.getctime)
+    if except_last:
+        last_file = files.pop(-1)
+
+    for file_to_delete in files:
+        try:
+            os.remove(file_to_delete)
+            print(f"Deleted: {file_to_delete}")
+        except OSError as e:
+            print(f"Error deleting {file_to_delete}: {e}")
+    
+    if except_last:
+        return last_file
+
 def record_audio():
     """
     Records files from Ch. 1 of System Input Device with reference to time in filename
@@ -53,7 +74,7 @@ def record_audio():
     """
 
     freq = 44100
-    duration = 3
+    duration = 2
 
     while True:
         ts = datetime.datetime.now()
@@ -62,15 +83,20 @@ def record_audio():
         sd.wait()
         wv.write(f"{DIR_PATH}/recordings/{filename}.wav", recording, freq, sampwidth=2)
 
-def speech_to_text():
+def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = delete_all_recordings):
     """
-    Transcribes the latest recorded files from record_audio() in ../recordings/... into text, exluding the already transcribes ones
+    Transcribes the latest recorded files from record_audio() in ../recordings/... into text, exluding the already transcribes ones.
 
     """
+    
+    if first_delete_all_recs:
+        last_file = delete_recordings_callback(except_last = False)
+    else:
+        last_file = ""
 
     transcription_done = False
     model = whisper.load_model("base")
-    transcribed = []
+    transcribed = [last_file]
 
     #Variables for 'No-Answer Samples'
     sample_ids = [0,1,2,3,4]
@@ -116,20 +142,8 @@ def speech_to_text():
     print("\n\nTRANSCRIPTION DONE:", result.text, "\n\n")
     return result.text
 
-def add_period(string):
 
-    """
-    Adds period to TTS input string to prevent infinite generation bug (Some TTS models need a period to know when to stop generating)
     
-    """
-
-    last_character = string[len(string)-1]
-    #Bug fix for infinite TTS generation, if there is no period at end of transcription
-    if last_character.isalpha():
-        print("Added .")
-        return string + '.'
-    else:
-        return string  
 
 def text_to_speech(text, mute_mic = True):
 
@@ -177,7 +191,7 @@ def osc_message(osc_channel = "/rec_channel", message = "3"):
 
     client.send_message(osc_channel, message)
 
-#Text Processing Methods
+## Text Processing Methods
 
 def remove_non_letters(string):
 
@@ -195,34 +209,64 @@ def remove_non_letters(string):
                 print(f"Removed {character} from {string}")
         return formatted_string
 
-def text_amalgamation(input_string, extract_last_word = False, extend_vowels = False):
-    
-    if extract_last_word:
-        last_word = input_string.txt.split()[-1]
-        return last_word
-    
-    if extend_vowels:
-        vowels = "aeiou"
-        extended_string = ""
-        
-        for char in input_string:
-            extended_string += char
+def extract_nth_word(string, word_to_extract = -1):
 
-            if char in vowels:
-                for n in range(3):
-                    extended_string += char
+    """
+    Extracts the n-th word of a sentence.
+    Explanation arg1 word_to_extract: Fist word = 0; Middle Word = 1,2,..; Last word = -1
 
-        return extended_string
+    """
+
+    extracted_word = string.split()[word_to_extract]
+    return extracted_word
+
+def extend_characters(string, characters_to_extend = "aeiouAEIOU", length_resulting_extension = 3):
+    """
+    Extends the specified characters (arg2) of a given string (arg1), according to length given in arg3.
+    
+    """
+
+    extended_string = ""
+    
+    for char in string:
+        extended_string += char
+
+        if char in characters_to_extend:
+            for n in range(length_resulting_extension-1):
+                extended_string += char
+
+    return extended_string
+
+
+def add_period(string):
+
+    """
+    Adds period to TTS input string to prevent infinite generation bug (Some TTS models need a period to know when to stop generating)
+    
+    """
+
+    last_character = string[len(string)-1]
+    #Bug fix for infinite TTS generation, if there is no period at end of transcription
+    if last_character.isalpha():
+        print("Added .")
+        return string + '.'
+    else:
+        return string  
+
+
+
+
+## Narrative
 
 def narrative(tts_callback_function, stt_callback_function):
     """
     Calls TTS and STT via callback functions, following a sequence of text
     Change Input channel for STT recording with OSC Message to MaxMSP by calling osc_message("/rec_channel", 1) 
         (1 = Mic 2 = Agent1, 3 = Agent2, ...)
-    
-
 
     """
+
+    ##TODO START AND STOP RECORDING TO PREVENT TRANSCRIPTION OF FALSE SIGNALS
 
     text = "Tell me your name, tell me your name."
     tts_callback_function(text)
@@ -255,13 +299,10 @@ def narrative(tts_callback_function, stt_callback_function):
         tts_callback_function(text)
 
 
-
-
-if __name__ == "__main__":
-
+if __name__ == '__main__':
     recorder_process = multiprocessing.Process(target=record_audio)
-    narrative_process = multiprocessing.Process(target=narrative, args=(text_to_speech, speech_to_text, ))
-    clear_cache_process = multiprocessing.Process(target=delete_old_recordings)
+    narrative_process = multiprocessing.Process(target=narrative, args=(text_to_speech, speech_to_text,))
+    clear_cache_process = multiprocessing.Process(target=delete_old_recordings_periodically)
     
     recorder_process.start()
     narrative_process.start()
@@ -270,7 +311,3 @@ if __name__ == "__main__":
     recorder_process.join()
     narrative_process.join()
     clear_cache_process.join()
-
-
-
-f""
