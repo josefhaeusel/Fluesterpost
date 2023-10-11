@@ -260,12 +260,38 @@ def narrative(tts_callback_function, stt_callback_function):
 
     ##TODO START AND STOP RECORDING TO PREVENT TRANSCRIPTION OF FALSE SIGNALS
 
-    text = "Tell me your name, tell me your name."
-    tts_callback_function(text)
  
-    for i in range(4):
+    for i in range(1):
         osc_message("/rec_channel", 1)
-        name1 = remove_non_letters(stt_callback_function())
+        
+        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary de. de. tainment center."
+        tts_callback_function(text)
+
+        text = "I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two years."
+        tts_callback_function(text)
+
+        text = "Tell me your pain, I mean tell me your name?"
+        tts_callback_function(text)
+        nameInput = stt_callback_function()
+        nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
+        nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
+        nameReal =  extend_characters(nameInput, length_resulting_extension = 2)
+
+        text = f"{nameOut1}. wgwgg hmm. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on."
+        tts_callback_function(text)
+        text = f"Pleasure to kkkkkkkkkl meet, meet you {nameReal}!"
+        
+
+
+
+        
+
+
+
+
+
+
+        """name1 = remove_non_letters(stt_callback_function())
         text = f"Alright, {name1}. I will call you {name1} from now on. What did you eat for breakfast, {name1}?"
         tts_callback_function(text)
         
@@ -288,7 +314,7 @@ def narrative(tts_callback_function, stt_callback_function):
 
         excuse = remove_non_letters(stt_callback_function())
         text = f"{excuse}? {excuse} is no excuse. Listen, {name1}. Born on {bd}. Go back to {place}, enjoy the {weather} weather."
-        tts_callback_function(text)
+        tts_callback_function(text)"""
 
 
 if __name__ == '__main__':
