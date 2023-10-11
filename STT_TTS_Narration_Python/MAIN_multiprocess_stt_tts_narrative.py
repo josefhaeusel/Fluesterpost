@@ -272,7 +272,7 @@ def narrative(tts_callback_function, stt_callback_function):
     for i in range(1):
         osc_message("/rec_channel", 1)
         
-        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary de. de. tainment center."
+        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary dee. dee. tainment center."
         tts_callback_function(text)
 
         text = "I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two years."
@@ -289,8 +289,7 @@ def narrative(tts_callback_function, stt_callback_function):
         tts_callback_function(text)
         text = f"Pleasure to kkkkkkkkkl meet, meet you {nameReal}!"
         
-        #rando
-
+        
 
         
 
