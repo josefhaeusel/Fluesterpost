@@ -3,7 +3,6 @@ import wavio as wv
 import datetime
 import pathlib
 import os
-import re 
 import glob
 import ssl
 import whisper
@@ -17,7 +16,6 @@ from pythonosc import udp_client
 
 ### SSL Bugfix Whisper SST
 ssl._create_default_https_context = ssl._create_unverified_context
-
 ### Global Variables
 DIR_PATH = pathlib.Path(__file__).parent.resolve()
 RECORDINGS_DIR = os.path.join(f'{DIR_PATH}/recordings/', '*')
@@ -83,14 +81,14 @@ def record_audio():
         sd.wait()
         wv.write(f"{DIR_PATH}/recordings/{filename}.wav", recording, freq, sampwidth=2)
 
-def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = delete_all_recordings):
+def speech_to_text(first_delete_all_recs = False, delete_recordings_callback = delete_all_recordings):
     """
     Transcribes the latest recorded files from record_audio() in ../recordings/... into text, exluding the already transcribes ones.
 
     """
     
     if first_delete_all_recs:
-        last_file = delete_recordings_callback(except_last = False)
+        last_file = delete_recordings_callback(except_last = True)
     else:
         last_file = ""
 
@@ -140,10 +138,7 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
                 transcription_done = True
         
     print("\n\nTRANSCRIPTION DONE:", result.text, "\n\n")
-    return result.text
-
-
-    
+    return result.text 
 
 def text_to_speech(text, mute_mic = True):
 
@@ -237,7 +232,6 @@ def extend_characters(string, characters_to_extend = "aeiouAEIOU", length_result
 
     return extended_string
 
-
 def add_period(string):
 
     """
@@ -252,8 +246,6 @@ def add_period(string):
         return string + '.'
     else:
         return string  
-
-
 
 
 ## Narrative
@@ -272,14 +264,15 @@ def narrative(tts_callback_function, stt_callback_function):
     for i in range(1):
         osc_message("/rec_channel", 1)
         
+<<<<<<< HEAD
         text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary dee. dee. tainment center."
+=======
+        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary de. de. tainment center. \
+                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two years.\
+                Tell me your p p pain, I mean tell me your name?"
+>>>>>>> 2360b7a56e6eea8293da356009307e57c2753d6f
         tts_callback_function(text)
 
-        text = "I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two years."
-        tts_callback_function(text)
-
-        text = "Tell me your pain, I mean tell me your name?"
-        tts_callback_function(text)
         nameInput = stt_callback_function()
         nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
         nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
@@ -290,13 +283,6 @@ def narrative(tts_callback_function, stt_callback_function):
         text = f"Pleasure to kkkkkkkkkl meet, meet you {nameReal}!"
         
         
-
-        
-
-
-
-
-
 
         """name1 = remove_non_letters(stt_callback_function())
         text = f"Alright, {name1}. I will call you {name1} from now on. What did you eat for breakfast, {name1}?"
@@ -336,3 +322,6 @@ if __name__ == '__main__':
     recorder_process.join()
     narrative_process.join()
     clear_cache_process.join()
+
+
+    "C'est quoi?"
