@@ -81,14 +81,14 @@ def record_audio():
         sd.wait()
         wv.write(f"{DIR_PATH}/recordings/{filename}.wav", recording, freq, sampwidth=2)
 
-def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = delete_all_recordings):
+def speech_to_text(first_delete_all_recs = False, delete_recordings_callback = delete_all_recordings):
     """
     Transcribes the latest recorded files from record_audio() in ../recordings/... into text, exluding the already transcribes ones.
 
     """
     
     if first_delete_all_recs:
-        last_file = delete_recordings_callback(except_last = False)
+        last_file = delete_recordings_callback(except_last = True)
     else:
         last_file = ""
 
@@ -264,14 +264,11 @@ def narrative(tts_callback_function, stt_callback_function):
     for i in range(1):
         osc_message("/rec_channel", 1)
         
-        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary de. de. tainment center."
+        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary de. de. tainment center. \
+                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two years.\
+                Tell me your p p pain, I mean tell me your name?"
         tts_callback_function(text)
 
-        text = "I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two years."
-        tts_callback_function(text)
-
-        text = "Tell me your pain, I mean tell me your name?"
-        tts_callback_function(text)
         nameInput = stt_callback_function()
         nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
         nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
@@ -281,13 +278,6 @@ def narrative(tts_callback_function, stt_callback_function):
         tts_callback_function(text)
         text = f"Pleasure to kkkkkkkkkl meet, meet you {nameReal}!"
         
-
-
-
-        
-
-
-
 
 
 
@@ -329,3 +319,6 @@ if __name__ == '__main__':
     recorder_process.join()
     narrative_process.join()
     clear_cache_process.join()
+
+
+    "C'est quoi?"
