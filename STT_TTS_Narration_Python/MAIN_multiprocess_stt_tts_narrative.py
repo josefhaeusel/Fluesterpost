@@ -289,8 +289,7 @@ def narrative(tts_callback_function, stt_callback_function):
         tts_callback_function(text)
         text = f"Pleasure to kkkkkkkkkl meet, meet you {nameReal}!"
         
-        #random
-
+        #rando
 
 
         
