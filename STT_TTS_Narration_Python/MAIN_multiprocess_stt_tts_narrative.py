@@ -3,7 +3,6 @@ import wavio as wv
 import datetime
 import pathlib
 import os
-import re 
 import glob
 import ssl
 import whisper
@@ -17,7 +16,6 @@ from pythonosc import udp_client
 
 ### SSL Bugfix Whisper SST
 ssl._create_default_https_context = ssl._create_unverified_context
-
 ### Global Variables
 DIR_PATH = pathlib.Path(__file__).parent.resolve()
 RECORDINGS_DIR = os.path.join(f'{DIR_PATH}/recordings/', '*')
@@ -140,10 +138,7 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
                 transcription_done = True
         
     print("\n\nTRANSCRIPTION DONE:", result.text, "\n\n")
-    return result.text
-
-
-    
+    return result.text 
 
 def text_to_speech(text, mute_mic = True):
 
@@ -237,7 +232,6 @@ def extend_characters(string, characters_to_extend = "aeiouAEIOU", length_result
 
     return extended_string
 
-
 def add_period(string):
 
     """
@@ -252,8 +246,6 @@ def add_period(string):
         return string + '.'
     else:
         return string  
-
-
 
 
 ## Narrative

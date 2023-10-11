@@ -18,6 +18,8 @@ def text_to_speech(text):
     sd.wait()
 
 
+
+
 """
 SECTION I       //////////////      //////////////      //////////////      //////////////
 
@@ -129,8 +131,6 @@ text_to_speech("tttttttt")          #Laughing
 text_to_speech("wwwwwwww.")         #Whirrel
 text_to_speech("yyyyyyyyyyyy.")     #Eyeyeyeyeyey
 text_to_speech("wgwgggwwwwwwg")     #Confusion
-
-
 
 
 
