@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 35.0, 84.0, 1068.0, 705.0 ],
+		"rect" : [ 41.0, 84.0, 1068.0, 691.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -72,6 +72,8 @@
 					"patching_rect" : [ 535.0, 712.634355306625366, 41.0, 48.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
+							"parameter_initial" : [ 0.0 ],
+							"parameter_initial_enable" : 1,
 							"parameter_longname" : "live.dial[3]",
 							"parameter_shortname" : "Diffusion",
 							"parameter_type" : 0,
@@ -95,6 +97,8 @@
 					"patching_rect" : [ 491.0, 712.634355306625366, 41.0, 48.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
+							"parameter_initial" : [ 0.0 ],
+							"parameter_initial_enable" : 1,
 							"parameter_longname" : "live.dial[2]",
 							"parameter_shortname" : "Damping",
 							"parameter_type" : 0,
@@ -118,6 +122,8 @@
 					"patching_rect" : [ 448.0, 712.634355306625366, 41.0, 48.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
+							"parameter_initial" : [ 20 ],
+							"parameter_initial_enable" : 1,
 							"parameter_longname" : "live.dial[1]",
 							"parameter_shortname" : "Decay",
 							"parameter_type" : 0,
@@ -141,6 +147,8 @@
 					"patching_rect" : [ 405.0, 712.634355306625366, 41.0, 48.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
+							"parameter_initial" : [ 50 ],
+							"parameter_initial_enable" : 1,
 							"parameter_longname" : "Size",
 							"parameter_shortname" : "Size",
 							"parameter_type" : 0,

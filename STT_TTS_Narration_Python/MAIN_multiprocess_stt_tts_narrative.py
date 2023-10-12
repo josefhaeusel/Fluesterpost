@@ -287,8 +287,19 @@ def narrative(tts_callback_function, stt_callback_function):
 
         text = f"{nameOut1}. wgwgg hmm. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on. It is a pleasure to kkkkkkkkkl meet, meet you, {nameReal}!"
         tts_callback_function(text)
-        text = f""
         
+        text = f"My name is jjj. jjjjj. jjjjjjj. ssh. jjjjjjj. hhh. hhh. hhh. But you can call me Steeeeve."
+        tts_callback_function(text)
+        text = f"So. {nameReal}, what were you doing, before you came here? Please be elaborate and pre pre precise."
+        responseA = stt_callback_function()
+
+        text = f"qqqqq. ztztztztztztztzt. You were {responseA}? shshshshsh. I don't believe you. I have seen your browser history, but nice try anyway\
+            . So, {nameReal}, what do you think of Pineapple on Pizzzzza?"
+        responseB = stt_callback_function()
+        
+        text = "Hahahaha, hhh, yes indeed. I also think slavery was abolished in 1863, you are so smart. clap clap. yes. ztztztztztzt"
+        tts_callback_function(text)
+        text = f"Oh, you said {responseB}? Sorry, I have a hard time understanding hue hue humans"
         
 
         
