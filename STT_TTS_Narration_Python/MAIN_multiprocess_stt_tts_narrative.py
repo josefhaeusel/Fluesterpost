@@ -91,7 +91,6 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
     
     if first_delete_all_recs:
         last_file = delete_recordings_callback(except_last = True)
-        time.sleep(2)
     else:
         last_file = ""
 
