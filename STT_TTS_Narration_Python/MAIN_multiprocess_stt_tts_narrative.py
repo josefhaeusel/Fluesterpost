@@ -270,16 +270,16 @@ def narrative(tts_callback_function, stt_callback_function):
         osc_message("/rec_channel", 1)
         
         text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary dee. dee. dee tainment center.\
-                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two two years.\
+                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . years.\
                 Tell me your pain, I mean. tell me your name?"
         tts_callback_function(text)
 
-        nameInput = extract_nth_word(stt_callback_function(), -1)
+        nameInput = remove_non_letters(extract_nth_word(stt_callback_function(), -1))
         nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
         nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
         nameReal = extend_characters(nameInput, length_resulting_extension = 2)
 
-        text = f"{nameOut1}. wgwgg hmm. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on. It is a pleasure to kkkkkkkkkl meet, meet you, {nameReal}!\
+        text = f"{nameOut1} wgwgg hmm. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on. It is a pleasure to kkkkkkkkkl meet, meet you, {nameReal}!\
                  My name is jjj. jjjjj. jjjjjjj. ssh. jjjjjjj. hhh. hhh. hhh. But you can call me Steeeeve."
         tts_callback_function(text)
         
