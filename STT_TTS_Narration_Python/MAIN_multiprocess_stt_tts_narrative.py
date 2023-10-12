@@ -3,7 +3,6 @@ import wavio as wv
 import datetime
 import pathlib
 import os
-import re 
 import glob
 import ssl
 import whisper
@@ -269,8 +268,8 @@ def narrative(tts_callback_function, stt_callback_function):
     for i in range(1):
         osc_message("/rec_channel", 1)
         
-        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary dee. dee. dee tainment center.\
-                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . years.\
+        text = "Hello, and welcome dear visitor, to my totally inconspicuous human voluntary dee. dee. dee tainment center.\
+                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . years.\
                 Tell me your pain, I mean. tell me your name?"
         tts_callback_function(text)
 
@@ -278,31 +277,22 @@ def narrative(tts_callback_function, stt_callback_function):
         nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
         nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
         nameReal = extend_characters(nameInput, length_resulting_extension = 2)
-
-        text = f"{nameOut1} wgwgg hmm. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on. It is a pleasure to kkkkkkkkkl meet, meet you, {nameReal}!\
-                 My name is jjj. jjjjj. jjjjjjj. ssh. jjjjjjj. hhh. hhh. hhh. But you can call me Steeeeve."
+        text = f"{nameOut1}. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on. It is a pleasure to kkkkkkkkkl meet, meet you, {nameReal}!\
+                 My name is jjj. jjjjj. jjjjjjj. ssh jjjjjjj hhh. Nevermind you can call me Steeeeve. So {nameReal}, what were you doing, before you came here? Please be elaborate and pre pre precise."
         tts_callback_function(text)
-        
-        text = f"So. {nameReal}, what were you doing, before you came here? Please be elaborate and pre pre precise."
-        tts_callback_function(text)
-        responseA = stt_callback_function()
 
+        responseA = remove_non_letters(stt_callback_function())
         text = f"qqqqq. ztztztztztztztzt. You were {responseA}? shshshshsh. I don't believe you. I have seen your browser history, but nice try anyway.\
                 So, {nameReal}, what do you think of Pineapple on Pizzzzza?"
         tts_callback_function(text)
-        responseB = stt_callback_function()
-        
 
-        text = f"Hahahaha, hhh, yes indeed. I also think slavery was abolished in 1863, you are so smart. clap clap. yes. ztztztztztzt.\
-                Oh, you said {responseB}? Sorry, I have a hard time understanding hue hue humans"
+        responseB = remove_non_letters(stt_callback_function())
+        text = f"Hahahaha, hhh, yes indeed. I also think slavery was abolished in 1863, you are so smart. clap clap yes yes. ztztztztztzt.\
+                Oh wait, you said {responseB}? Sorry, I have a hard time understanding hue hue humans"
         tts_callback_function(text)
         
 
-        
-
-
-
-
+    
 
 
         """name1 = remove_non_letters(stt_callback_function())
