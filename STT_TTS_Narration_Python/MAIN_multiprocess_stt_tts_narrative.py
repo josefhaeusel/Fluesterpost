@@ -90,7 +90,8 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
     """
     
     if first_delete_all_recs:
-        last_file = delete_recordings_callback(except_last = False)
+        last_file = delete_recordings_callback(except_last = True)
+        time.sleep(2)
     else:
         last_file = ""
 
@@ -266,40 +267,36 @@ def narrative(tts_callback_function, stt_callback_function):
 
     """
 
-    ##TODO START AND STOP RECORDING TO PREVENT TRANSCRIPTION OF FALSE SIGNALS
-
- 
     for i in range(1):
         osc_message("/rec_channel", 1)
         
-        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary dee. dee. tainment center."
+        text = "Hello, and welcome, dear visitor, to my totally inconspicuous human voluntary dee. dee. dee tainment center.\
+                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two two years.\
+                Tell me your pain, I mean. tell me your name?"
         tts_callback_function(text)
 
-        text = "I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . . . two two years."
-        tts_callback_function(text)
-
-        text = "Tell me your pain, I mean. tell me your name?"
-        tts_callback_function(text)
-        nameInput = stt_callback_function()
+        nameInput = extract_nth_word(stt_callback_function(), -1)
         nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
         nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
         nameReal = extend_characters(nameInput, length_resulting_extension = 2)
 
-        text = f"{nameOut1}. wgwgg hmm. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on. It is a pleasure to kkkkkkkkkl meet, meet you, {nameReal}!"
+        text = f"{nameOut1}. wgwgg hmm. {nameOut2}. ztztztztztztztztztzt. I will just call you {nameReal} from now on. It is a pleasure to kkkkkkkkkl meet, meet you, {nameReal}!\
+                 My name is jjj. jjjjj. jjjjjjj. ssh. jjjjjjj. hhh. hhh. hhh. But you can call me Steeeeve."
         tts_callback_function(text)
         
-        text = f"My name is jjj. jjjjj. jjjjjjj. ssh. jjjjjjj. hhh. hhh. hhh. But you can call me Steeeeve."
-        tts_callback_function(text)
         text = f"So. {nameReal}, what were you doing, before you came here? Please be elaborate and pre pre precise."
+        tts_callback_function(text)
         responseA = stt_callback_function()
 
-        text = f"qqqqq. ztztztztztztztzt. You were {responseA}? shshshshsh. I don't believe you. I have seen your browser history, but nice try anyway\
-            . So, {nameReal}, what do you think of Pineapple on Pizzzzza?"
+        text = f"qqqqq. ztztztztztztztzt. You were {responseA}? shshshshsh. I don't believe you. I have seen your browser history, but nice try anyway.\
+                So, {nameReal}, what do you think of Pineapple on Pizzzzza?"
+        tts_callback_function(text)
         responseB = stt_callback_function()
         
-        text = "Hahahaha, hhh, yes indeed. I also think slavery was abolished in 1863, you are so smart. clap clap. yes. ztztztztztzt"
+
+        text = f"Hahahaha, hhh, yes indeed. I also think slavery was abolished in 1863, you are so smart. clap clap. yes. ztztztztztzt.\
+                Oh, you said {responseB}? Sorry, I have a hard time understanding hue hue humans"
         tts_callback_function(text)
-        text = f"Oh, you said {responseB}? Sorry, I have a hard time understanding hue hue humans"
         
 
         
