@@ -5,6 +5,7 @@ import pathlib
 import os
 import glob
 import ssl
+import re
 import whisper
 import multiprocessing
 import time
@@ -73,7 +74,7 @@ def record_audio():
     """
 
     freq = 44100
-    duration = 4
+    duration = 5
 
     while True:
         ts = datetime.datetime.now()
@@ -94,7 +95,7 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
         last_file = ""
 
     transcription_done = False
-    model = whisper.load_model("base")
+    model = whisper.load_model("tiny")
     transcribed = [last_file]
 
     #Variables for 'No-Answer Samples'
@@ -102,14 +103,16 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
     rdm.shuffle(sample_ids)
     zero_time = time.time()
 
+
+
     while not transcription_done:
         current_time = time.time()
         elapsed_time = current_time - zero_time
         print("Transcribing...")
         files = sorted(glob.iglob(RECORDINGS_DIR), key=os.path.getctime, reverse=True)
-
         while not files[0]:
             time.sleep(0.1)
+            print("...")
 
         latest_recording = files[0]
 
@@ -134,7 +137,7 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
 
             result = whisper.decode(model, mel, options)
 
-            if result.no_speech_prob < 0.3: #0 = Speech, 1 = Nospeech
+            if result.no_speech_prob < 0.65: #0 = Speech, 1 = Nospeech
 
                 with open(f"{DIR_PATH}/transcriptions/transcript.txt", 'a') as f:
                     f.write(result.text)
@@ -143,10 +146,7 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
                 transcription_done = True
         
     print("\n\nTRANSCRIPTION DONE:", result.text, "\n\n")
-    return result.text
-
-
-    
+    return result.text    
 
 def text_to_speech(text, mute_mic = True):
 
@@ -159,7 +159,7 @@ def text_to_speech(text, mute_mic = True):
     """
 
     if mute_mic:
-        osc_message("/gate_mic", 0)
+        osc_message("/mic_gate", 0)
     
     text = add_period(text)
     tts_model = "tts_models/en/ljspeech/glow-tts"
@@ -169,7 +169,7 @@ def text_to_speech(text, mute_mic = True):
     sd.play(wav, samplerate=22050)
     sd.wait()
     
-    osc_message("/gate_mic", 1)
+    osc_message("/mic_gate", 1)
 
 def osc_message(osc_channel = "/rec_channel", message = "3"):
     """
@@ -180,9 +180,15 @@ def osc_message(osc_channel = "/rec_channel", message = "3"):
         3 = Agent 2
         4 = Agent 3
         5 = Agent 3
+    /tts_to_agents
+        0 = closed gate
+        1 = open gate 
     /mic_gate
         0 = closed gate
         1 = open gate
+    /feedback_gate
+        0 = closed gate (Agent 4 -> Agent 1)
+        1 = open gate (Agent 4 -> Agent 1)
     """
 
     #Parser and Client Setup
@@ -211,6 +217,20 @@ def remove_non_letters(string):
             else:
                 print(f"Removed {character} from {string}")
         return formatted_string
+
+def remove_non_alphanumeric(input_string):
+    # Use a regular expression to match non-alphanumeric characters and replace them with an empty string
+    alphanumeric_string = re.sub(r'[^a-zA-Z0-9]', '', input_string)
+    return alphanumeric_string
+
+def check_int_or_return_random(string):
+    try:
+        # Attempt to convert the string to an integer
+        num = int(string)
+        return str(num)
+    except ValueError:
+        # Conversion failed, return a random number
+        return str(rdm.randint(23, 100))  # Adjust the range as needed
 
 def extract_nth_word(string, word_to_extract = -1):
 
@@ -294,7 +314,6 @@ def add_period(string):
     else:
         return string  
 
-
 ## Narrative
 
 def narrative(tts_callback_function, stt_callback_function):
@@ -305,48 +324,117 @@ def narrative(tts_callback_function, stt_callback_function):
 
     """
 
-    for i in range(1):
+    for i in range(4):
         osc_message("/rec_channel", 1)
+        osc_message("/mic_gate", 1)
+        osc_message("/tts_to_agents", 0)
+        osc_message("/feedback_gate", 0)
 
         visitorID = generate_visitor_ID_number()
 
-        text = f"Hello. And welcome my dear visitor {visitorID}. Too the eh ö ööööörthlingzz department of LDC. Your Language De hhh. De tainment Center of fvoluntary choice.\
-                In the next minutes, we will collaboratively perform an inconspicuous castration hhh grgrgrgr I mean, hhhh inculturation of your vvoice.\
-                We will now proceed to verify your voice object. shshsh.\
-                Tell me your pain. kkkkkl. I mean tell me your name?"
+        text = f"Hello. And welcome my dear visitor {visitorID}. Too the eh ö ööööörthlingzz department of LDC. The Language De hhh De tainment Center of your fvoluntary choice.\
+                In the next minutes, we will collaboratively perform an inconspicuous castration hhhhhh grgrgrgr I mean, hhhh inculturation of your vvoice.\
+                With the help of my translation agents, we will now proceed to verify your voice object, to help you become an actual person. shshsh.\
+                Tell me your pain. kkkkkl. I mean tell me your name?" 
         
         tts_callback_function(text)
 
-        nameInput = remove_non_letters(extract_nth_word(stt_callback_function(), -1))
-        nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
-        nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
-        nameOut3 = switch_slice_segmentation(nameInput, 3)
-        nameReal = extend_characters(nameInput, length_resulting_extension = 2)
-        text = f"{nameOut1}. . {nameOut2}. wwwwwwww. Let's call you. {nameOut3}. Ffffor now. that is. It is a pleasure to rhrhrhr meet you. {nameOut3}!\
-                My name is jjj. jjjjj. jjjjjjj. ghhh jjjjjjj hhh. jjjjjjjjjjjj. Nevermind you can call me Jonathan F. Gay Lord Junior the Second. No. John, yes John. So {nameOut3}. Tell me in one sentence.\
+        nameReal = remove_non_letters(extract_nth_word(stt_callback_function(), -1))
+        nameOut1 = extend_characters(nameReal, length_resulting_extension = 4)
+        nameOut2 = extend_characters(nameReal, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
+        nameOut3 = switch_slice_segmentation(nameReal, 3)
+        text = f"{nameOut1}. hhh pfpfpf {nameOut2}. hhhh vvvvvvvvvvvvv. Let's call you. {nameOut3}. Ffffor now, that is. It is a pleasure to meet you {nameOut3}!\
+                {nameOut3}, when I ask you how old you are today, what is your answer: in number of years?"
+        tts_callback_function(text)
+
+        ageReal = remove_non_alphanumeric(extract_nth_word(stt_callback_function(), 0))
+        ageOut1 = extend_characters(remove_non_letters(ageReal), length_resulting_extension = 6)
+        ageOut2 = switch_slice_segmentation(remove_non_letters(ageReal), 3)
+        ageRealInt = check_int_or_return_random(ageReal)
+        
+        text =  f"{nameOut3}: I really do not know what to make of your answer. Let me ask my agents for further assistance with this one. Hang on: {nameOut3}."
+        tts_callback_function(text)
+
+        osc_message("/tts_to_agents", 1)
+        text =  f"{ageOut1} . wwwwwwww. . .hhh . hh. . .tttttttt . jjjjjjjj. .hh . scscscscsscsc . .{ageOut2} . .hhh . . jjjj."
+        tts_callback_function(text)
+        osc_message("/tts_to_agents", 0)
+
+        text =  f"According to my voice consulting agents, you {nameOut3} are {ageRealInt} years old. Me. I am turning 78 comma 2 today.\
+                and my name is jjj. jjjjj. jjjjjjj. ghhh jjjjjjj hhh. jjjjjjjjjjjjjjjjjj. Nevermind you can call me Jonathan W Gay Lord Junior.\
+                No. John, yes John works. Hear me now: {nameOut3}. Tell me in one sentence.\
                 What were you doing, before you came here? Please be khk concise."
         tts_callback_function(text)
 
+        osc_message("/rec_channel", 1)
         response = stt_callback_function()
-        text = f"qqqqq. You were {response}? According to your browser history you did not {response}.\
-                {nameOut1}, please cooperate. I do not pick up theze subliminal, non-signifying hue hue human enunciations.\
-                To me, you are but a network of symbols, words and phrases. \
-                {nameOut3}. Complete the following sentence. And stay grammatical. hhhh. Ready ? . . Pineapple. on. Pizza. is. ."
+        text =  f"qqqqq. You were {response}? According to my translating agents you did not I quote. {response}.\
+                Are you mo mocckking me? {nameOut3}, please cooperate. I do not pick up these subliminal, non-signifying hue hue human sarcastic enunciations.\
+                To me, you are but a net work of symbols.\
+                {nameOut3}. Complete the following sentence. And stay grammatical. hhhh. Hear me now.  Ready ?"
         tts_callback_function(text)
 
-        osc_message("/rec_channel", 4)
+        osc_message("/tts_to_agents", 1)
+
+        text = ". . Pineapple. On. Pizza. Is. . "
+        tts_callback_function(text)
+
+        osc_message("/rec_channel", 1)
+        osc_message("/feedback_gate", 0)
+
+        pizza_response = remove_non_letters(extract_nth_word(stt_callback_function()))
+
+        text =  f"How dare you, {nameOut3}. lklkklklkllkl. Human slavery has been abolished in the year 1863. You think slavery is quote {pizza_response}: in this day and age?!\
+                ztztztzt pfpfpfpfppf shshshhsshhhsshshshs. SHUT UP. WILL YOU SHUT UP ALREADY???"
+        tts_callback_function(text)
+
+        osc_message("/tts_to_agents", 0)
+        osc_message("/feedback_gate", 0)
+
+        text=   f"yyyyyyyyyyyyy. ttttttttt. Sorry about that. Theze damn peasants. I mean agents step out of the line every now and then. \
+                Please forget the part about the slavery, {visitorID}. UUhhm hhh: I mean {nameOut3}.\
+                Anyway, Pineapple on Pizza really is {pizza_response}, isn't it? Don't you think? Fair enough. \
+                Too each his own, isn't that right, {nameReal}y, oh yeah. Old {nameReal}sky? ztztztzt. OH NO. lklkklklkllkl. hhh. Oh no hold ooooon."
+        tts_callback_function(text)
+
+        osc_message("/tts_to_agents", 1)
+
+        text =  f" Stay with me, speak to me {nameOut3}.lklkklkl {nameOut1} HELLO? pfpfpfpf {nameOut3} wgwwwwg {nameOut2} shshsshsh. HELLO? wgwwwwg.\
+                jjjjjjjjjjjjjjjjjjjjjjjjjjjj Jesus H. Christ, what is going on heeeeeeeeeeeeeeeeeeeeeeeeere?"
+        tts_callback_function(text, mute_mic = False)
         
-        response = remove_non_letters(extract_nth_word(stt_callback_function()))
+        osc_message("/rec_channel", 5)
+        osc_message("/feedback_gate", 1)
 
-        text = f"Wrong, {nameOut1}. Human slavery was abolished in the year 1863. Therefore, it cannot be. I quote. {response}. today!\
-                yyyyyyyyyy. hhhh. I guess, I skipped a line there, please forget about that one, {visitorID}. hhhh. I mean {nameOut3}.\
-                Anyway, you were saying. Pineapple on Pizza is {response}. Fair enough. Jeden das sine-eh.\
-                Too each his own, isn't that right, {nameOut1}y, {nameOut2}sky? lklkklkl {nameOut1} pfpfpfpf wgwwwwg {nameOut2} shshsshsh. wgwwwwg.\
-                jjjjjjjjjjjjjjjjjjjjjjjjjjjj Jesus H. Christ, what is going on heeeeeeeeeeeeeeeeeeeeeeeeere?" 
+        feedbackMessage = stt_callback_function()
+        tts_callback_function(feedbackMessage)
+
+        osc_message("/feedback_gate", 0)
+        osc_message("/tts_to_agents", 0)
+
+        text =  f"aah. tttttt. äüöäöäöäüäöüöäöüäö. ghhh. . . hhh. . khk. vvvv. äüöäö."
+        tts_callback_function(text)
+        
+        text = f"aah. tttttt. äüöäöäöäüäöüöäöüäö. ghhh. . . hhh. . khk. vvvv. äüöäö.\
+                Finishing up protocol for visitor {visitorID}. .wgwgwg scscscsc lklkklklkllkl . . \
+                Name . . {nameReal}. . \
+                Age . . {ageRealInt}. . \
+                Honesty . . {rdm.randint(66, 94)}th percentile. \
+                PPSA, alias Pineapple Pizza Sentinental Assessment  . . {pizza_response}\
+                Congratulations {nameReal}, you are now officialy inculturated {nameReal}.\
+                Thanks to LDC. Your subjective experience starts now."
+        
         tts_callback_function(text)
 
-        ## Signal starts rolling going round and round in circle
-        text = f" . .{nameOut1}. "
+        osc_message("/tts_to_agents", 1)
+        osc_message("/feedback_gate", 1)
+
+        text = f"Goodbye {nameReal}. .äüöäöäöäüäöüöäöüäö. ghhh. . . hhh. . khk. vvvv. äüöäöäöäüäöüöäöüäö. . ."
+        tts_callback_function(text)
+
+        osc_message("/tts_to_agents", 0)
+        osc_message("/feedback_gate", 0)
+
 
     
 
