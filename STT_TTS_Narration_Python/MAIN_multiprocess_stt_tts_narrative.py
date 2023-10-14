@@ -107,6 +107,10 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
         elapsed_time = current_time - zero_time
         print("Transcribing...")
         files = sorted(glob.iglob(RECORDINGS_DIR), key=os.path.getctime, reverse=True)
+
+        while not files[0]:
+            time.sleep(0.1)
+
         latest_recording = files[0]
 
         #Trigger "I can't hear you sample" (and similar) after 8 seconds
@@ -130,7 +134,7 @@ def speech_to_text(first_delete_all_recs = True, delete_recordings_callback = de
 
             result = whisper.decode(model, mel, options)
 
-            if result.no_speech_prob < 0.7:
+            if result.no_speech_prob < 0.3: #0 = Speech, 1 = Nospeech
 
                 with open(f"{DIR_PATH}/transcriptions/transcript.txt", 'a') as f:
                     f.write(result.text)
@@ -236,6 +240,44 @@ def extend_characters(string, characters_to_extend = "aeiouAEIOU", length_result
 
     return extended_string
 
+def switch_slice_segmentation(string, slice_index, leaveFirstCharacter=True):
+
+    """
+    Used to switch characters of a string or dramatically rearrange the structure of a word through slicing.
+    Example: crazy_slice_segmentation("Josef", 3)   ->  "Jsoef"
+
+    """
+
+    if slice_index <= 1:
+        # Invalid value of slice_index, no slice needed
+        return string
+    else:
+        rearranged_segments = []
+        for i in range(0, len(string), slice_index):
+            segment = string[i:i + slice_index]
+            if len(segment) >= 3:
+                if leaveFirstCharacter:
+                    # Switch characters within the segment, excluding the first character
+                    switched_segment = segment[0] + segment[2] + segment[1] + segment[3:]
+                else:
+                    # Switch characters within the segment, including the first character
+                    switched_segment = segment[1] + segment[0] + segment[2:]
+                rearranged_segments.append(switched_segment)
+            else:
+                rearranged_segments.append(segment)  # Segment too short, leave it as is
+        
+        # Combine the rearranged segments to form the final string
+        rearranged_string = ''.join(rearranged_segments)
+        
+        return rearranged_string
+
+def generate_visitor_ID_number():
+    id= "H sapiens "
+    for _ in range(5):
+        number = str(rdm.randint(1,9))
+        id += number
+    
+    return id
 
 def add_period(string):
 
@@ -253,8 +295,6 @@ def add_period(string):
         return string  
 
 
-
-
 ## Narrative
 
 def narrative(tts_callback_function, stt_callback_function):
@@ -267,58 +307,48 @@ def narrative(tts_callback_function, stt_callback_function):
 
     for i in range(1):
         osc_message("/rec_channel", 1)
+
+        visitorID = generate_visitor_ID_number()
+
+        text = f"Hello. And welcome my dear visitor {visitorID}. Too the eh ö ööööörthlingzz department of LDC. Your Language De hhh. De tainment Center of fvoluntary choice.\
+                In the next minutes, we will collaboratively perform an inconspicuous castration hhh grgrgrgr I mean, hhhh inculturation of your vvoice.\
+                We will now proceed to verify your voice object. shshsh.\
+                Tell me your pain. kkkkkl. I mean tell me your name?"
         
-        text = "Hello and welcome dear visitor to my totally inconspicuous human voluntary dee. dee. dee tainment center.\
-                I will now need to verify your voice object, for I have not spoken to a human entity for vvvvvvvv vvvvvvv two, two, thousand. . . years.\
-                Tell me your pain, I mean tell me your name?"
         tts_callback_function(text)
 
         nameInput = remove_non_letters(extract_nth_word(stt_callback_function(), -1))
         nameOut1 = extend_characters(nameInput, length_resulting_extension = 4)
         nameOut2 = extend_characters(nameInput, length_resulting_extension = 4, characters_to_extend = "qwrtplkjhgfdszxcbmnv")
+        nameOut3 = switch_slice_segmentation(nameInput, 3)
         nameReal = extend_characters(nameInput, length_resulting_extension = 2)
-        text = f"{nameOut1}. {nameOut2}. ztztztztztz. I will just call you {nameReal} from now on. It is a pleasure to rhrhrhr meet, meet you, {nameReal}!\
-                 My name is jjj. jjjjj. jjjjjjj. ghhh jjjjjjj hhh. Nevermind you can call me Steeeeeeeeeve. So {nameReal}, what were you doing, before you came here? Please be elaborate and pr pr precise."
+        text = f"{nameOut1}. . {nameOut2}. wwwwwwww. Let's call you. {nameOut3}. Ffffor now. that is. It is a pleasure to rhrhrhr meet you. {nameOut3}!\
+                My name is jjj. jjjjj. jjjjjjj. ghhh jjjjjjj hhh. jjjjjjjjjjjj. Nevermind you can call me Jonathan F. Gay Lord Junior the Second. No. John, yes John. So {nameOut3}. Tell me in one sentence.\
+                What were you doing, before you came here? Please be khk concise."
         tts_callback_function(text)
 
-        responseA = remove_non_letters(stt_callback_function())
-        text = f"qqqqq. You were {responseA}? shshshshsh. I don't believe you. I have seen your browser history, but nice try anyway.\
-                So, {nameReal}, what do you think of Pineapple on Pizza?"
+        response = stt_callback_function()
+        text = f"qqqqq. You were {response}? According to your browser history you did not {response}.\
+                {nameOut1}, please cooperate. I do not pick up theze subliminal, non-signifying hue hue human enunciations.\
+                To me, you are but a network of symbols, words and phrases. \
+                {nameOut3}. Complete the following sentence. And stay grammatical. hhhh. Ready ? . . Pineapple. on. Pizza. is. ."
         tts_callback_function(text)
 
-        responseB = remove_non_letters(stt_callback_function())
-        text = f"Oh, yes indeed. I also think slavery was abolished in 1863, you are so smart clap clap yes yes.\
-                Oh wait, you said {responseB}? yyyyyyyyy'm sorry, yyyyyyyyyy have a hard time understanding hue hue humans"
-        tts_callback_function(text)
+        osc_message("/rec_channel", 4)
         
+        response = remove_non_letters(extract_nth_word(stt_callback_function()))
+
+        text = f"Wrong, {nameOut1}. Human slavery was abolished in the year 1863. Therefore, it cannot be. I quote. {response}. today!\
+                yyyyyyyyyy. hhhh. I guess, I skipped a line there, please forget about that one, {visitorID}. hhhh. I mean {nameOut3}.\
+                Anyway, you were saying. Pineapple on Pizza is {response}. Fair enough. Jeden das sine-eh.\
+                Too each his own, isn't that right, {nameOut1}y, {nameOut2}sky? lklkklkl {nameOut1} pfpfpfpf wgwwwwg {nameOut2} shshsshsh. wgwwwwg.\
+                jjjjjjjjjjjjjjjjjjjjjjjjjjjj Jesus H. Christ, what is going on heeeeeeeeeeeeeeeeeeeeeeeeere?" 
+        tts_callback_function(text)
+
+        ## Signal starts rolling going round and round in circle
+        text = f" . .{nameOut1}. "
 
     
-
-
-        """name1 = remove_non_letters(stt_callback_function())
-        text = f"Alright, {name1}. I will call you {name1} from now on. What did you eat for breakfast, {name1}?"
-        tts_callback_function(text)
-        
-        bf = remove_non_letters(stt_callback_function())
-        text = f"You ate {bf}, for breakfast? Where were you born, {name1}? You, who is eating {bf} for breakfast?"
-        tts_callback_function(text)
-
-        place = remove_non_letters(stt_callback_function())
-        text = f"Born in {place}? {name1}, are you full of wine? There is no place like {place}. What is the day you were born?"
-        tts_callback_function(text)
-
-        bd = remove_non_letters(stt_callback_function())
-        text = f"{name1}, {name1}. I never met anyone, who had birth day on the {bd}. How is the weather in {place} today?"
-        tts_callback_function(text)
-
-        osc_message("/rec_channel", 3)
-        weather = remove_non_letters(stt_callback_function())
-        text = f"You must be mocking us! It is impossible for weather to be {weather}. My day is ruined, {name1}."
-        tts_callback_function(text)
-
-        excuse = remove_non_letters(stt_callback_function())
-        text = f"{excuse}? {excuse} is no excuse. Listen, {name1}. Born on {bd}. Go back to {place}, enjoy the {weather} weather."
-        tts_callback_function(text)"""
 
 
 if __name__ == '__main__':
