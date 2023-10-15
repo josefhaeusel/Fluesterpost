@@ -411,9 +411,6 @@ def narrative(tts_callback_function, stt_callback_function):
 
         osc_message("/feedback_gate", 0)
         osc_message("/tts_to_agents", 0)
-
-        text =  f"aah. tttttt. äüöäöäöäüäöüöäöüäö. ghhh. . . hhh. . khk. vvvv. äüöäö."
-        tts_callback_function(text)
         
         text = f"aah. tttttt. äüöäöäöäüäöüöäöüäö. ghhh. . . hhh. . khk. vvvv. äüöäö.\
                 Finishing up protocol for visitor {visitorID}. .wgwgwg scscscsc lklkklklkllkl . . \
