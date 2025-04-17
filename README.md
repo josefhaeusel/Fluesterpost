@@ -1,4 +1,6 @@
-# SID2A-Project
+# Flüsterpost
+
+Audio game, that lets you play silent post with feedbacked and STT-transcribed Variational Audio-Encoders (VAE). 
 
 Requirements:
 
